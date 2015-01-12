@@ -33,10 +33,14 @@ Median total number of steps per day = `r daily.median`
 ## What is the average daily activity pattern?
 
 ```{r}
+# Calculate mean steps by interval
 interval.means <- aggregate(steps ~ interval, input.data, mean, na.action = na.omit)
+
+# A simple plot to show how mean steps varies by interval
 with(interval.means, plot(interval, steps, type = "l"))
 
-max.index <- which(interval.means == max(interval.means$steps))
+# When is the maximum mean steps?
+max.index <- which(interval.means$steps == max(interval.means$steps))
 max.interval <- interval.means$interval[max.index]
 max.steps <- interval.means$steps[max.index]
 ```
@@ -54,12 +58,15 @@ The total number of rows with NA steps is `r total.na.count`
 ```{r}
 # Take a copy of the input data to modify
 input.data.filled <- input.data
-na.index <- is.na(input.data$steps)
+
 # Fill in the missing step measurements using the mean for the given interval.
+na.index <- is.na(input.data$steps)
 input.data.filled[na.index, ]$steps <- interval.means[match(input.data[na.index,]$interval, interval.means$interval), ]$steps
 
+# Calculate daily totals using filled data
 day.totals.filled <- aggregate(steps ~ date, input.data.filled, sum, na.action = na.omit)
 
+# Histogram of daily totals using filled data
 hist(day.totals.filled$steps)
 
 daily.mean.filled <- mean(day.totals.filled$steps, na.rm = TRUE)
@@ -76,10 +83,13 @@ We can see that filling in missing observations in this way slightly increases t
 ## Are there differences in activity patterns between weekdays and weekends?
 
 ```{r}
+# Add a weekday/weekend factor to the filled data
 input.data.filled$day.type <- as.factor(ifelse(weekdays(input.data.filled$date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
 
+# Calculate interval means using the filled data
 day.type.means <- aggregate(steps ~ day.type + interval, input.data.filled, mean, na.action = na.omit)
 
+# A plot which shows the different in the step profile between weekends and weekdays
 library(lattice)
 xyplot(steps ~ interval | day.type, day.type.means, type = c('g','l'))
 ```
